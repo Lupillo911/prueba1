@@ -17,6 +17,19 @@ app.get('/', (req, res) => {
   res.send('Servidor funcionando correctamente');
 });
 
+app.get('/productos', async (req, res) => {
+    try {
+      console.log("Consultando productos...");
+      const result = await db.execute('SELECT * FROM productos');
+      console.log(result.rows);  // Asegúrate de que se reciban los datos
+      res.json(result.rows);
+    } catch (err) {
+      console.error("Error al consultar productos:", err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+
 // Ejemplo de endpoint
 app.get('/productos', async (req, res) => {
   try {
