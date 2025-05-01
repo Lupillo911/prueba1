@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 function Productos() {
   const [productos, setProductos] = useState([]);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [productoEditar, setProductoEditar] = useState({ Nom_prod: '', descripcion: '' });
+  const [mostrarFormularioAgregar, setMostrarFormularioAgregar] = useState(false);
+  const [productoNuevo, setProductoNuevo] = useState({ Nom_prod: '', descripcion: '' });
+  const [productoEditar, setProductoEditar] = useState(null); // null cuando no se edita
 
   useEffect(() => {
     obtenerProductos();
@@ -16,35 +17,32 @@ function Productos() {
       .catch((err) => console.error('Error al obtener productos:', err));
   };
 
-  const manejarCambio = (e) => {
+  const manejarCambioNuevo = (e) => {
+    const { name, value } = e.target;
+    setProductoNuevo({ ...productoNuevo, [name]: value });
+  };
+
+  const manejarCambioEditar = (e) => {
     const { name, value } = e.target;
     setProductoEditar({ ...productoEditar, [name]: value });
   };
 
-  const manejarFormulario = (e) => {
+  const manejarFormularioAgregar = (e) => {
     e.preventDefault();
-    
-    if (!productoEditar.Nom_prod.trim() || !productoEditar.descripcion.trim()) {
+
+    if (!productoNuevo.Nom_prod.trim() || !productoNuevo.descripcion.trim()) {
       return alert("Completa todos los campos.");
     }
 
-    if (productoEditar.Nom_prod) {
-      editarProducto();
-    } else {
-      agregarProducto();
-    }
-  };
-
-  const agregarProducto = () => {
     fetch('http://localhost:4000/productos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(productoEditar),
+      body: JSON.stringify(productoNuevo),
     })
       .then((res) => {
         if (res.ok) {
-          setProductoEditar({ Nom_prod: '', descripcion: '' });
-          setMostrarFormulario(false);
+          setProductoNuevo({ Nom_prod: '', descripcion: '' });
+          setMostrarFormularioAgregar(false);
           obtenerProductos();
         } else {
           alert('Error al agregar producto.');
@@ -53,7 +51,9 @@ function Productos() {
       .catch((err) => console.error('Error al agregar producto:', err));
   };
 
-  const editarProducto = () => {
+  const manejarFormularioEditar = (e) => {
+    e.preventDefault();
+
     fetch(`http://localhost:4000/productos/${productoEditar.Nom_prod}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -61,8 +61,7 @@ function Productos() {
     })
       .then((res) => {
         if (res.ok) {
-          setProductoEditar({ Nom_prod: '', descripcion: '' });
-          setMostrarFormulario(false);
+          setProductoEditar(null);
           obtenerProductos();
         } else {
           alert('Error al editar producto.');
@@ -73,10 +72,8 @@ function Productos() {
 
   const manejarEditar = (producto) => {
     setProductoEditar({ ...producto });
-    setMostrarFormulario(true);
   };
 
-  // Función para eliminar un producto
   const eliminarProducto = (Nom_prod) => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar el producto: ${Nom_prod}?`)) {
       fetch(`http://localhost:4000/productos/${Nom_prod}`, {
@@ -84,7 +81,7 @@ function Productos() {
       })
         .then((res) => {
           if (res.ok) {
-            obtenerProductos(); // Actualizar la lista de productos después de eliminar
+            obtenerProductos();
           } else {
             alert('Error al eliminar producto.');
           }
@@ -96,39 +93,59 @@ function Productos() {
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
       <h2>Lista de Productos</h2>
-      <button onClick={() => setMostrarFormulario(!mostrarFormulario)}>
-        {mostrarFormulario ? 'Cancelar' : 'Agregar producto'}
+      
+      <button onClick={() => setMostrarFormularioAgregar(!mostrarFormularioAgregar)}>
+        {mostrarFormularioAgregar ? 'Cancelar' : 'Agregar producto'}
       </button>
 
-      {mostrarFormulario && (
-        <form onSubmit={manejarFormulario} style={{ margin: '20px auto', width: '300px' }}>
+      {/* Formulario de AGREGAR */}
+      {mostrarFormularioAgregar && (
+        <form onSubmit={manejarFormularioAgregar} style={{ margin: '20px auto', width: '300px' }}>
           <input
             type="text"
             name="Nom_prod"
             placeholder="Nombre del producto"
-            value={productoEditar.Nom_prod}
-            onChange={manejarCambio}
+            value={productoNuevo.Nom_prod}
+            onChange={manejarCambioNuevo}
             style={{ width: '100%', marginBottom: '10px' }}
-            disabled // Deshabilitado para no permitir editar el nombre
           />
           <input
             type="text"
             name="descripcion"
             placeholder="Descripción"
-            value={productoEditar.descripcion}
-            onChange={manejarCambio}
+            value={productoNuevo.descripcion}
+            onChange={manejarCambioNuevo}
             style={{ width: '100%', marginBottom: '10px' }}
           />
-          <button type="submit">{productoEditar.Nom_prod ? 'Actualizar' : 'Guardar'}</button>
+          <button type="submit">Guardar</button>
         </form>
       )}
 
-      <table
-        border="1"
-        cellPadding="8"
-        cellSpacing="0"
-        style={{ margin: '0 auto', textAlign: 'center' }}
-      >
+      {/* Formulario de EDITAR */}
+      {productoEditar && (
+        <form onSubmit={manejarFormularioEditar} style={{ margin: '20px auto', width: '300px' }}>
+          <input
+            type="text"
+            name="Nom_prod"
+            value={productoEditar.Nom_prod}
+            disabled
+            style={{ width: '100%', marginBottom: '10px', backgroundColor: '#eee' }}
+          />
+          <input
+            type="text"
+            name="descripcion"
+            value={productoEditar.descripcion}
+            onChange={manejarCambioEditar}
+            style={{ width: '100%', marginBottom: '10px' }}
+          />
+          <button type="submit">Actualizar</button>
+          <button type="button" onClick={() => setProductoEditar(null)} style={{ marginLeft: '10px' }}>
+            Cancelar
+          </button>
+        </form>
+      )}
+
+      <table border="1" cellPadding="8" cellSpacing="0" style={{ margin: '0 auto', textAlign: 'center' }}>
         <thead>
           <tr>
             <th>Nombre</th>
