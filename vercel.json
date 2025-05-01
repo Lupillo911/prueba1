@@ -1,0 +1,24 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "src/**/*",
+        "use": "@vercel/react"
+      },
+      {
+        "src": "api/**/*.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/productos",
+        "dest": "/api/productos.js"
+      },
+      {
+        "src": "/productos/(.*)",
+        "dest": "/api/productos.js"
+      }
+    ]
+  }
+  
