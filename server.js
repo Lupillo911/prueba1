@@ -12,6 +12,11 @@ const db = createClient({
   authToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDYwNjA3NTMsImlkIjoiMzVlNTk2YTUtZjUyYy00MmY5LTgxZGQtN2VhMTY3ZTEyOGI3IiwicmlkIjoiYjQ4NzRkNGItMzNhMS00NGJlLTg3OWUtZDQ3YzIzYWE4NDY1In0.dVq6MT-EaZWh_r2v4UGNJ271_XOT9AbwCL5uWi7rkgD7TH1rEH3MBNJ2LfWpwvo9KJqZKILkKviD1wIQ0yCiDw'
 });
 
+// Ruta raíz para comprobar si el servidor funciona
+app.get('/', (req, res) => {
+  res.send('Servidor funcionando correctamente');
+});
+
 // Ejemplo de endpoint
 app.get('/productos', async (req, res) => {
   try {
@@ -22,7 +27,7 @@ app.get('/productos', async (req, res) => {
   }
 });
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
